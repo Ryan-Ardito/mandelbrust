@@ -26,6 +26,25 @@ pub fn render(x: f64, y: f64, width: usize, height: usize, base_view_height: f64
     buffer
 }
 
+pub fn save_image(buffer: Vec<u32>, width: u32, height: u32, file_path: &str, oversample: u32) -> Result<(), image::ImageError> {
+    // Create an ImageBuffer from the u32 buffer
+    let image_buffer: ImageBuffer<Rgba<u8>, _> = ImageBuffer::from_fn(width, height, |x, y| {
+        let pixel = buffer[(y * width + x) as usize];
+        Rgba([(pixel >> 16) as u8, (pixel >> 8) as u8, pixel as u8, 255])
+    });
+
+    // Convert ImageBuffer to DynamicImage
+    let mut dynamic_image: DynamicImage = DynamicImage::ImageRgba8(image_buffer);
+
+    // sample down
+    if oversample > 1 {
+        dynamic_image = dynamic_image.resize(width / oversample, height / oversample, image::imageops::FilterType::Lanczos3);
+    }
+
+    // Save the DynamicImage as PNG
+    dynamic_image.save(file_path)
+}
+
 pub fn get_color(value: u32, scale: f64, shift: u32) -> u32 {
     match value {
         0 => 0,
@@ -65,20 +84,4 @@ fn is_in_cardioid(x0: f64, y0: f64) -> bool {
 
 fn is_in_bulb(x0: f64, y0: f64) -> bool {
     (x0 + 1.0).powi(2) + y0.powi(2) < 0.0625
-}
-
-pub fn save_image(buffer: Vec<u32>, width: u32, height: u32, file_path: &str, oversample: u32) -> Result<(), image::ImageError> {
-    // Create an ImageBuffer from the u32 buffer
-    let image_buffer: ImageBuffer<Rgba<u8>, _> = ImageBuffer::from_fn(width, height, |x, y| {
-        let pixel = buffer[(y * width + x) as usize];
-        Rgba([(pixel >> 16) as u8, (pixel >> 8) as u8, pixel as u8, 255])
-    });
-
-    // Convert ImageBuffer to DynamicImage
-    let mut dynamic_image: DynamicImage = DynamicImage::ImageRgba8(image_buffer);
-
-    dynamic_image = dynamic_image.resize(width / oversample, height / oversample, image::imageops::FilterType::Lanczos3);
-
-    // Save the DynamicImage as PNG
-    dynamic_image.save(file_path)
 }
