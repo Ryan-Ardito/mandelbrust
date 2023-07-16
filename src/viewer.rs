@@ -18,8 +18,8 @@ pub struct Viewer {
 }
 
 impl Viewer {
-    pub fn new(width: usize, height: usize) -> Viewer {
-        Viewer {
+    pub fn new(width: usize, height: usize) -> Self {
+        Self {
             buffer: vec![0; width * height],
             width,
             height,
@@ -33,7 +33,13 @@ impl Viewer {
         }
     }
 
-    pub fn screenshot(&self, width: usize, height: usize, oversample: u32, post_proc: &PostProc) {
+    pub fn screenshot(
+        &self,
+        width: usize,
+        height: usize,
+        oversample: u32,
+        post_proc: &PostProc,
+    ) {
         print!("Saving... ");
         stdout().flush().expect("terminal error");
 
@@ -50,7 +56,13 @@ impl Viewer {
             self.iterations,
         );
         let color_buffer = post_proc.process(&hires_buffer);
-        match save_image(color_buffer, hi_w as u32, hi_h as u32, IMAGE_PATH, oversample) {
+        match save_image(
+            color_buffer,
+            hi_w as u32,
+            hi_h as u32,
+            IMAGE_PATH,
+            oversample,
+        ) {
             Ok(()) => println!("done!"),
             Err(_) => println!("failed!"),
         }

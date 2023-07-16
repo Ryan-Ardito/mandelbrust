@@ -30,7 +30,15 @@ pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     i
 }
 
-pub fn render(x_pos: f64, y_pos: f64, width: usize, height: usize, base_view_height: f64, zoom: f64, iterations: u32) -> Vec<u32> {
+pub fn render(
+    x_pos: f64,
+    y_pos: f64,
+    width: usize,
+    height: usize,
+    base_view_height: f64,
+    zoom: f64,
+    iterations: u32,
+) -> Vec<u32> {
     let x_min = x_pos - (2.0 / zoom);
     let x_max = x_pos + (2.0 / zoom);
     let y_min = y_pos - (base_view_height / zoom);
@@ -55,9 +63,15 @@ pub fn render(x_pos: f64, y_pos: f64, width: usize, height: usize, base_view_hei
     buffer
 }
 
-pub fn save_image(buffer: Vec<u32>, width: u32, height: u32, file_path: &str, oversample: u32) -> image::ImageResult<()> {
+pub fn save_image(
+    buffer: Vec<u32>,
+    width: u32,
+    height: u32,
+    file_path: &str,
+    oversample: u32,
+) -> image::ImageResult<()> {
     // Create an ImageBuffer from the u32 buffer
-    let image_buffer: ImageBuffer<Rgba<u8>, _> = ImageBuffer::from_fn(width, height, |x, y| {
+    let image_buffer = ImageBuffer::from_fn(width, height, |x, y| {
         let pixel = buffer[(y * width + x) as usize];
         Rgba([(pixel >> 16) as u8, (pixel >> 8) as u8, pixel as u8, 255])
     });
@@ -65,9 +79,13 @@ pub fn save_image(buffer: Vec<u32>, width: u32, height: u32, file_path: &str, ov
     // Convert ImageBuffer to DynamicImage
     let mut dynamic_image: DynamicImage = DynamicImage::ImageRgba8(image_buffer);
 
-    // sample down
+    // Sample down
     if oversample > 1 {
-        dynamic_image = dynamic_image.resize(width / oversample, height / oversample, image::imageops::FilterType::Lanczos3);
+        dynamic_image = dynamic_image.resize(
+            width / oversample,
+            height / oversample,
+            image::imageops::FilterType::Lanczos3,
+        );
     }
 
     // Save the DynamicImage as PNG
