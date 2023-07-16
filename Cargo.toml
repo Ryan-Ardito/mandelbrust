@@ -12,6 +12,8 @@ opt-level = 3
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+pixels = "*"
+winit = "*"
 minifb = "0.24.0"
 image = "0.24.6"
 rayon = "1.7.0"
