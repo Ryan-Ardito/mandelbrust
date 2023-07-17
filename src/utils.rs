@@ -54,7 +54,7 @@ pub fn render(
         .for_each(|(y, row)| {
             let y_scaled = y_min + (y as f64) * y_exp;
 
-            let mut x_scaled = x_min + 1.0 * x_exp;
+            let mut x_scaled = x_min + x_exp;
             for pixel in row.iter_mut() {
                 *pixel = calc_pixel(x_scaled, y_scaled, iterations);
                 x_scaled += x_exp;

@@ -1,5 +1,5 @@
-use std::io::Write;
-use std::io::stdout;
+use std::io::{ Write, stdout };
+use std::thread;
 
 use crate::constants::{ITERATIONS, IMAGE_PATH};
 use crate::utils::{render, save_image};
@@ -38,34 +38,41 @@ impl Viewer {
         width: usize,
         height: usize,
         oversample: u32,
-        post_proc: &PostProc,
+        post_proc: PostProc,
     ) {
         print!("Saving... ");
         stdout().flush().expect("terminal error");
 
+        let x_pos = self.x_pos.clone();
+        let y_pos = self.y_pos.clone();
         let hi_w = width * oversample as usize;
         let hi_h = height * oversample as usize;
         let base_vh = 2.0 / (hi_w as f64 / hi_h as f64);
-        let hires_buffer = render(
-            self.x_pos,
-            self.y_pos,
-            hi_w,
-            hi_h,
-            base_vh,
-            self.zoom,
-            self.iterations,
-        );
-        let color_buffer = post_proc.process(&hires_buffer);
-        match save_image(
-            color_buffer,
-            hi_w as u32,
-            hi_h as u32,
-            IMAGE_PATH,
-            oversample,
-        ) {
-            Ok(()) => println!("done!"),
-            Err(_) => println!("failed!"),
-        }
+        let zoom = self.zoom.clone();
+        let iterations = self.iterations.clone();
+        // let post = post_proc.clone();
+        thread::spawn(move || {
+            let hires_buffer = render(
+                x_pos,
+                y_pos,
+                hi_w,
+                hi_h,
+                base_vh,
+                zoom,
+                iterations,
+            );
+            let color_buffer = post_proc.process(&hires_buffer);
+            match save_image(
+                color_buffer,
+                hi_w as u32,
+                hi_h as u32,
+                IMAGE_PATH,
+                oversample,
+            ) {
+                Ok(()) => println!("done!"),
+                Err(_) => println!("failed!"),
+            }
+        });
     }
     
     pub fn reset(&mut self) {
@@ -115,6 +122,7 @@ impl Viewer {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct PostProc {
     pub color_scale: f64,
     pub color_shift: u32,
@@ -171,13 +179,12 @@ impl PostProc {
             val = val.clamp(0, 255);
         }
 
-        val = val % 256;
-
         if self.invert {
             val = !(val as u8) as u32;
         }
 
         if self.grayscale {
+            val = val % 256;
             (val << 16) | (val << 8) | val
         } else {
             let r = val % 8 * 32;

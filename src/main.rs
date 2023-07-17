@@ -36,7 +36,7 @@ fn main() {
             Key::U => post_proc.grayscale = !post_proc.grayscale,
             Key::I => post_proc.invert = !post_proc.invert,
             Key::K => post_proc.clamp = !post_proc.clamp,
-            Key::P => viewer.screenshot(1920, 1080, 4, &post_proc),
+            Key::P => viewer.screenshot(1920, 1080, 4, post_proc),
             Key::T => { viewer.iter_up(); change = true; },
             Key::G => { viewer.iter_down(); change = true; },
             Key::Key1 => { viewer.reset(); post_proc.reset(); change = true; },
