@@ -1,8 +1,10 @@
 use std::io::{ Write, stdout };
 use std::thread;
 
+use rayon::prelude::*;
+
 use crate::constants::{ITERATIONS, IMAGE_PATH};
-use crate::utils::{render, save_image};
+use crate::rendering::{render, save_image};
 
 pub struct Viewer {
     pub buffer: Vec<u32>,
@@ -43,14 +45,13 @@ impl Viewer {
         print!("Saving... ");
         stdout().flush().expect("terminal error");
 
-        let x_pos = self.x_pos.clone();
-        let y_pos = self.y_pos.clone();
+        let x_pos = self.x_pos;
+        let y_pos = self.y_pos;
         let hi_w = width * oversample as usize;
         let hi_h = height * oversample as usize;
         let base_vh = 2.0 / (hi_w as f64 / hi_h as f64);
-        let zoom = self.zoom.clone();
-        let iterations = self.iterations.clone();
-        // let post = post_proc.clone();
+        let zoom = self.zoom;
+        let iterations = self.iterations;
         thread::spawn(move || {
             let hires_buffer = render(
                 x_pos,
@@ -126,9 +127,16 @@ impl Viewer {
 pub struct PostProc {
     pub color_scale: f64,
     pub color_shift: u32,
+    pub blackwhite: bool,
     pub grayscale: bool,
     pub invert: bool,
     pub clamp: bool,
+}
+
+impl Default for PostProc {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PostProc {
@@ -136,6 +144,7 @@ impl PostProc {
         Self {
             color_scale: 1.0,
             color_shift: 0,
+            blackwhite: false,
             grayscale: false,
             invert: false,
             clamp: false,
@@ -144,10 +153,6 @@ impl PostProc {
 
     pub fn reset(&mut self) {
         *self = Self::new();
-    }
-
-    pub fn process(&self, buffer: &Vec<u32>) -> Vec<u32> {
-        buffer.iter().map(|&value| self.get_color(value)).collect()
     }
 
     pub fn color_shift_up(&mut self) {
@@ -170,8 +175,17 @@ impl PostProc {
         }
     }
 
+    pub fn process(&self, buffer: &[u32]) -> Vec<u32> {
+        buffer
+            .par_iter()
+            .map(|&value| self.get_color(value))
+            .collect()
+    }
+
     fn get_color(&self, value: u32) -> u32 {
         if value == 0 { return 0; }
+
+        if self.blackwhite { return 0xFFFFFF; }
 
         let mut val = self.color_shift + (value as f64 / self.color_scale) as u32;
 

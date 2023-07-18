@@ -1,13 +1,12 @@
 use rayon::prelude::*;
-use image::{DynamicImage, ImageBuffer, Rgba};
+use image::{DynamicImage, ImageBuffer, Rgba, imageops::FilterType};
 
-fn is_in_cardioid_or_bulb(x0: f64, y0: f64) -> bool {
-    let y2 = y0.powi(2);
-    let q = (x0 - 0.25).powi(2) + y2;
-    // cardioid
-    q * (q + (x0 - 0.25)) < 0.25 * y2 ||
-    // bulb
-    (x0 + 1.0).powi(2) + y2 < 0.0625
+fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
+    let y2 = y_pos.powi(2);
+    let q = (x_pos - 0.25).powi(2) + y2;
+    let in_cardioid = q * (q + (x_pos - 0.25)) < 0.25 * y2;
+    let in_bulb = (x_pos + 1.0).powi(2) + y2 < 0.0625;
+    in_cardioid || in_bulb
 }
 
 pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
@@ -24,8 +23,8 @@ pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
         x2 = x.powi(2);
         y2 = y.powi(2);
         w = (x + y).powi(2);
+        if i >= iterations { return 0; }
         i += 1;
-        if i > iterations { return 0; }
     }
     i
 }
@@ -49,7 +48,7 @@ pub fn render(
     let mut buffer = vec![0; width * height];
 
     buffer
-        .par_chunks_mut(width)
+        .par_chunks_exact_mut(width)
         .enumerate()
         .for_each(|(y, row)| {
             let y_scaled = y_min + (y as f64) * y_exp;
@@ -84,7 +83,7 @@ pub fn save_image(
         dynamic_image = dynamic_image.resize(
             width / oversample,
             height / oversample,
-            image::imageops::FilterType::Lanczos3,
+            FilterType::Lanczos3,
         );
     }
 

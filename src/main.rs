@@ -2,7 +2,7 @@
 
 mod viewer;
 mod constants;
-mod utils;
+mod rendering;
 
 use viewer::{Viewer, PostProc};
 use constants::*;
@@ -33,6 +33,7 @@ fn main() {
 
         // handle input
         window.get_keys_pressed(KeyRepeat::No).iter().for_each(|key| match key {
+            Key::O => post_proc.blackwhite = !post_proc.blackwhite,
             Key::U => post_proc.grayscale = !post_proc.grayscale,
             Key::I => post_proc.invert = !post_proc.invert,
             Key::K => post_proc.clamp = !post_proc.clamp,
