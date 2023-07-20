@@ -3,8 +3,10 @@
 This program is a Mandelbrot Viewer that allows you to explore the famous Mandelbrot set and its variations interactively. It uses the `minifb` library for window display and keyboard input.
 
 ![render](./screenshots/beedubs.png)
-![render](./screenshots/cell.png)
 ![render](./screenshots/deepsea.png)
+![render](./screenshots/clatter.png)
+![render](./screenshots/cell.png)
+![render](./screenshots/mito.png)
 
 ## Features
 
