@@ -1,6 +1,7 @@
 use rayon::prelude::*;
 use image::{DynamicImage, ImageBuffer, Rgba, imageops::FilterType};
 
+#[inline(always)]
 fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
     let y2 = y_pos.powi(2);
     let q = (x_pos - 0.25).powi(2) + y2;
@@ -9,6 +10,7 @@ fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
     in_cardioid || in_bulb
 }
 
+#[inline(always)]
 pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     if is_in_cardioid_or_bulb(x_pos, y_pos) { return 0; }
 
@@ -18,14 +20,15 @@ pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     let mut i = 0;
 
     while x2 + y2 <= 4.0 {
+        if i >= iterations { return 0; }
         let x = x2 - y2 + x_pos;
         let y = w - x2 - y2 + y_pos;
         x2 = x.powi(2);
         y2 = y.powi(2);
         w = (x + y).powi(2);
-        if i >= iterations { return 0; }
         i += 1;
     }
+
     i
 }
 
@@ -59,7 +62,32 @@ pub fn render(
                 x_scaled += x_exp;
             }
         });
+
     buffer
+}
+
+pub fn scale_image(image: Vec<u32>, width: usize, height: usize) -> Vec<u32> {
+    let new_width = width * 4;
+    let new_height = height * 4;
+    let mut scaled_image = vec![0; new_width * new_height];
+
+    for y in 0..height {
+        for x in 0..width {
+            let orig_pixel = image[y * width + x];
+            let dest_x = x * 4;
+            let dest_y = y * 4;
+            let dest_index = dest_y * new_width + dest_x;
+
+            // Copy the original pixel to the 16 pixels in the scaled image
+            for dy in 0..4 {
+                for dx in 0..4 {
+                    scaled_image[dest_index + dy * new_width + dx] = orig_pixel;
+                }
+            }
+        }
+    }
+
+    scaled_image
 }
 
 pub fn save_image(

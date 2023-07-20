@@ -4,7 +4,7 @@ use std::thread;
 use rayon::prelude::*;
 
 use crate::constants::{ITERATIONS, IMAGE_PATH};
-use crate::rendering::{render, save_image};
+use crate::rendering::{render, save_image, scale_image};
 
 pub struct Viewer {
     pub buffer: Vec<u32>,
@@ -32,6 +32,29 @@ impl Viewer {
             x_pos: 0.0,
             y_pos: 0.0,
             zoom: 1.0,
+        }
+    }
+
+    pub fn update(&mut self, low_res: bool) {
+        let mut width = self.width;
+        let mut height = self.height;
+        if low_res {
+            width /= 4;
+            height /= 4;
+        }
+        let buffer = render(
+            self.x_pos,
+            self.y_pos,
+            width,
+            height,
+            self.base_view_height,
+            self.zoom,
+            self.iterations,
+        );
+        if low_res {
+            self.buffer = scale_image(buffer, self.width / 4, self.height / 4)
+        } else {
+            self.buffer = buffer;
         }
     }
 
@@ -88,18 +111,6 @@ impl Viewer {
     pub fn iter_down(&mut self) {
         if self.iterations > 1 { self.iterations /= 2; }
         println!("Iterations: {}", self.iterations);
-    }
-
-    pub fn update(&mut self) {
-        self.buffer = render(
-            self.x_pos,
-            self.y_pos,
-            self.width,
-            self.height,
-            self.base_view_height,
-            self.zoom,
-            self.iterations,
-        );
     }
 
     pub fn zoom(&mut self, factor: f64) {
