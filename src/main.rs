@@ -8,7 +8,7 @@ use minifb::{ Key, Window, WindowOptions, KeyRepeat };
 
 fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
-    viewer.update(false, 2);
+    viewer.update(false);
     // true when the final render is displayed
     let mut full_res = true;
     // true triggers low-res first pass
@@ -65,11 +65,11 @@ fn main() {
 
         // update render
         if motion {
-            viewer.update(true, 2);
+            viewer.update(true);
             motion = false;
             full_res = false;
         } else if !full_res {
-            viewer.update(false, 2);
+            viewer.update(false);
             full_res = true;
         }
 

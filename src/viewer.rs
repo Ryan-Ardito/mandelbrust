@@ -30,7 +30,7 @@ impl Viewer {
         }
     }
 
-    pub fn update(&mut self, low_res: bool, iter_down: u32) {
+    pub fn update(&mut self, low_res: bool) {
         let mut width = self.width;
         let mut height = self.height;
         let mut iterations = self.iterations;
@@ -39,7 +39,7 @@ impl Viewer {
         if low_res {
             width /= downsample_scale;
             height /= downsample_scale;
-            iterations /= iter_down;
+            iterations /= 2;
         }
 
         let buffer = render(

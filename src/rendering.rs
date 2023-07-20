@@ -7,6 +7,7 @@ pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     let mut x2 = 0.0;
     let mut y2 = 0.0;
 
+    // HOT loop
     for i in 0..iterations {
         if x2 + y2 > 4.0 { return i; }
 
