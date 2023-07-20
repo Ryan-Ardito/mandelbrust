@@ -9,10 +9,9 @@ pub struct Viewer {
     pub buffer: Vec<u32>,
     pub width: usize,
     pub height: usize,
-    pub color_scale: f64,
-    pub color_shift: u32,
     pub iterations: u32,
     base_view_height: f64,
+    downsample_exp: u32,
     x_pos: f64,
     y_pos: f64,
     zoom: f64,
@@ -24,24 +23,24 @@ impl Viewer {
             buffer: vec![0; width * height],
             width,
             height,
-            color_scale: 1.0,
-            color_shift: 0,
             iterations: ITERATIONS,
             base_view_height: 2.0 / (width as f64 / height as f64),
+            downsample_exp: 2,
             x_pos: 0.0,
             y_pos: 0.0,
             zoom: 1.0,
         }
     }
 
-    pub fn update(&mut self, low_res: bool, scale: usize) {
+    pub fn update(&mut self, low_res: bool, iter_down: u32) {
         let mut width = self.width;
         let mut height = self.height;
         let mut iterations = self.iterations;
+        let downsample_scale = 2usize.pow(self.downsample_exp);
         if low_res {
-            width /= scale;
-            height /= scale;
-            iterations /= 2;
+            width /= downsample_scale;
+            height /= downsample_scale;
+            iterations /= iter_down;
         }
         let buffer = render(
             self.x_pos,
@@ -53,7 +52,7 @@ impl Viewer {
             iterations,
         );
         if low_res {
-            self.buffer = upscale_buffer(buffer, width, height, scale)
+            self.buffer = upscale_buffer(buffer, width, height, downsample_scale)
         } else {
             self.buffer = buffer;
         }

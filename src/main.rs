@@ -16,7 +16,7 @@ use minifb::{Key, Window, WindowOptions, KeyRepeat};
 
 fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
-    viewer.update(false, UPSCALE_FACOR);
+    viewer.update(false, 2);
     let mut full_res = true;
     let mut change = false;
 
@@ -69,11 +69,11 @@ fn main() {
 
         // update render
         if change {
-            viewer.update(true, UPSCALE_FACOR);
+            viewer.update(true, 2);
             change = false;
             full_res = false;
         } else if !full_res {
-            viewer.update(false, UPSCALE_FACOR);
+            viewer.update(false, 2);
             full_res = true;
         }
 
