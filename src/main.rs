@@ -5,8 +5,10 @@ use std::time::Duration;
 mod viewer;
 mod constants;
 mod rendering;
+mod imaging;
 
-use viewer::{Viewer, PostProc};
+use viewer::Viewer;
+use imaging::PostProc;
 use constants::*;
 
 use minifb::{Key, Window, WindowOptions, KeyRepeat};
@@ -14,7 +16,7 @@ use minifb::{Key, Window, WindowOptions, KeyRepeat};
 
 fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
-    viewer.update(false);
+    viewer.update(false, UPSCALE_FACOR);
     let mut full_res = true;
     let mut change = false;
 
@@ -67,11 +69,11 @@ fn main() {
 
         // update render
         if change {
-            viewer.update(true);
+            viewer.update(true, UPSCALE_FACOR);
             change = false;
             full_res = false;
         } else if !full_res {
-            viewer.update(false);
+            viewer.update(false, UPSCALE_FACOR);
             full_res = true;
         }
 

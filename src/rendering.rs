@@ -1,5 +1,4 @@
 use rayon::prelude::*;
-use image::{DynamicImage, ImageBuffer, Rgba, imageops::FilterType};
 
 #[inline(always)]
 fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
@@ -19,6 +18,7 @@ pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     let mut w = 0.0;
     let mut i = 0;
 
+    // HOT loop
     while x2 + y2 <= 4.0 {
         if i >= iterations { return 0; }
         let x = x2 - y2 + x_pos;
@@ -64,57 +64,4 @@ pub fn render(
         });
 
     buffer
-}
-
-pub fn scale_image(image: Vec<u32>, width: usize, height: usize) -> Vec<u32> {
-    let new_width = width * 4;
-    let new_height = height * 4;
-    let mut scaled_image = vec![0; new_width * new_height];
-
-    for y in 0..height {
-        for x in 0..width {
-            let orig_pixel = image[y * width + x];
-            let dest_x = x * 4;
-            let dest_y = y * 4;
-            let dest_index = dest_y * new_width + dest_x;
-
-            // Copy the original pixel to the 16 pixels in the scaled image
-            for dy in 0..4 {
-                for dx in 0..4 {
-                    scaled_image[dest_index + dy * new_width + dx] = orig_pixel;
-                }
-            }
-        }
-    }
-
-    scaled_image
-}
-
-pub fn save_image(
-    buffer: Vec<u32>,
-    width: u32,
-    height: u32,
-    file_path: &str,
-    oversample: u32,
-) -> image::ImageResult<()> {
-    // Create an ImageBuffer from the u32 buffer
-    let image_buffer = ImageBuffer::from_fn(width, height, |x, y| {
-        let pixel = buffer[(y * width + x) as usize];
-        Rgba([(pixel >> 16) as u8, (pixel >> 8) as u8, pixel as u8, 255])
-    });
-
-    // Convert ImageBuffer to DynamicImage
-    let mut dynamic_image: DynamicImage = DynamicImage::ImageRgba8(image_buffer);
-
-    // Sample down
-    if oversample > 1 {
-        dynamic_image = dynamic_image.resize(
-            width / oversample,
-            height / oversample,
-            FilterType::Lanczos3,
-        );
-    }
-
-    // Save the DynamicImage as PNG
-    dynamic_image.save(file_path)
 }
