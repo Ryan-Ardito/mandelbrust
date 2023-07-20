@@ -1,6 +1,6 @@
 # Mandelbrot Viewer
 
-This program is a Mandelbrot Viewer that allows you to explore the Mandelbrot set. It currently uses the `minifb` library for window display and keyboard input.
+This program is a Mandelbrot Viewer that allows you to explore the Mandelbrot set. It currently uses the `minifb` library for window display and keyboard input, and `rayon` for parallelization.
 
 ![render](./screenshots/mandelbrot.png)
 ![render](./screenshots/cell.png)
