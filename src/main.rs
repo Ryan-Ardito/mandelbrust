@@ -16,7 +16,7 @@ fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
     viewer.update(false);
     let mut full_res = true;
-    let mut change = true;
+    let mut change = false;
 
     let mut post_proc = PostProc::new();
 
@@ -35,6 +35,7 @@ fn main() {
 
         // handle input
         window.get_keys_pressed(KeyRepeat::No).iter().for_each(|key| match key {
+            Key::L => println!("{:?}", viewer),
             Key::O => post_proc.blackwhite = !post_proc.blackwhite,
             Key::U => post_proc.grayscale = !post_proc.grayscale,
             Key::I => post_proc.invert = !post_proc.invert,
@@ -42,7 +43,7 @@ fn main() {
             Key::P => viewer.screenshot(1920, 1080, 4, post_proc),
             Key::T => { viewer.iter_up(); full_res = false; },
             Key::G => { viewer.iter_down(); full_res = false; },
-            Key::Key1 => { viewer.reset(); post_proc.reset(); change = true; },
+            Key::Key1 => { viewer.reset(); post_proc.reset(); full_res = false; },
             _ => (),
         });
         
@@ -73,6 +74,7 @@ fn main() {
             viewer.update(false);
             full_res = true;
         }
-        thread::sleep(Duration::new(0, 8333333))
+
+        thread::sleep(Duration::new(0, FRAME_DURATION_NS))
     }
 }

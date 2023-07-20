@@ -6,6 +6,7 @@ use rayon::prelude::*;
 use crate::constants::{ITERATIONS, IMAGE_PATH};
 use crate::rendering::{render, save_image, scale_image};
 
+#[derive(Debug)]
 pub struct Viewer {
     pub buffer: Vec<u32>,
     pub width: usize,
@@ -38,9 +39,11 @@ impl Viewer {
     pub fn update(&mut self, low_res: bool) {
         let mut width = self.width;
         let mut height = self.height;
+        let mut iterations = self.iterations;
         if low_res {
             width /= 4;
             height /= 4;
+            iterations /= 2;
         }
         let buffer = render(
             self.x_pos,
@@ -49,10 +52,10 @@ impl Viewer {
             height,
             self.base_view_height,
             self.zoom,
-            self.iterations,
+            iterations,
         );
         if low_res {
-            self.buffer = scale_image(buffer, self.width / 4, self.height / 4)
+            self.buffer = scale_image(buffer, width, height)
         } else {
             self.buffer = buffer;
         }
