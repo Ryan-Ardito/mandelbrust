@@ -1,35 +1,32 @@
 use rayon::prelude::*;
 
 #[inline(always)]
+pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
+    let mut x = 0.0;
+    let mut y = 0.0;
+    let mut x2 = 0.0;
+    let mut y2 = 0.0;
+
+    for i in 0..iterations {
+        if x2 + y2 > 4.0 { return i; }
+
+        let x_temp = x2 - y2 + x_pos;
+        y = 2.0 * x * y + y_pos;
+        x = x_temp;
+        x2 = x * x;
+        y2 = y * y;
+    }
+
+    0
+}
+
+#[inline(always)]
 fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
     let y2 = y_pos.powi(2);
     let q = (x_pos - 0.25).powi(2) + y2;
     let in_cardioid = q * (q + (x_pos - 0.25)) < 0.25 * y2;
     let in_bulb = (x_pos + 1.0).powi(2) + y2 < 0.0625;
     in_cardioid || in_bulb
-}
-
-#[inline(always)]
-pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
-    if is_in_cardioid_or_bulb(x_pos, y_pos) { return 0; }
-
-    let mut x2 = 0.0;
-    let mut y2 = 0.0;
-    let mut w = 0.0;
-    let mut i = 0;
-
-    // HOT loop
-    while x2 + y2 <= 4.0 {
-        if i >= iterations { return 0; }
-        let x = x2 - y2 + x_pos;
-        let y = w - x2 - y2 + y_pos;
-        x2 = x.powi(2);
-        y2 = y.powi(2);
-        w = (x + y).powi(2);
-        i += 1;
-    }
-
-    i
 }
 
 pub fn render(
@@ -58,7 +55,10 @@ pub fn render(
 
             let mut x_scaled = x_min + x_exp;
             for pixel in row.iter_mut() {
-                *pixel = calc_pixel(x_scaled, y_scaled, iterations);
+                *pixel = match is_in_cardioid_or_bulb(x_scaled, y_scaled) {
+                    true => 0,
+                    false => calc_pixel(x_scaled, y_scaled, iterations),
+                };
                 x_scaled += x_exp;
             }
         });

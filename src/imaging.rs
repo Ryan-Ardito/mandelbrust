@@ -94,7 +94,7 @@ fn save_image(
     dynamic_image.save(file_path)
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct PostProc {
     pub color_scale: f64,
     pub color_shift: u32,

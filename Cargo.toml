@@ -1,5 +1,5 @@
 [package]
-name = "mandelbrot"
+name = "mandelbrust"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,13 +9,16 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[[bench]]
+name = "mandel_benchmark"
+harness = false
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pixels = "*"
-winit = "*"
 minifb = "0.24.0"
 image = "0.24.6"
 rayon = "1.7.0"
-num = "0.4.0"
-packed_simd = "0.3.8"

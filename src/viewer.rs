@@ -1,5 +1,3 @@
-use std::thread;
-
 use crate::constants::ITERATIONS;
 use crate::rendering::render;
 use crate::imaging::{PostProc, screenshot, upscale_buffer};
@@ -37,11 +35,13 @@ impl Viewer {
         let mut height = self.height;
         let mut iterations = self.iterations;
         let downsample_scale = 2usize.pow(self.downsample_exp);
+
         if low_res {
             width /= downsample_scale;
             height /= downsample_scale;
             iterations /= iter_down;
         }
+
         let buffer = render(
             self.x_pos,
             self.y_pos,
@@ -51,6 +51,7 @@ impl Viewer {
             self.zoom,
             iterations,
         );
+
         if low_res {
             self.buffer = upscale_buffer(buffer, width, height, downsample_scale)
         } else {
@@ -69,18 +70,17 @@ impl Viewer {
         let y_pos = self.y_pos;
         let zoom = self.zoom;
         let iterations = self.iterations;
-        thread::spawn(move || {
-            screenshot(
-                x_pos,
-                y_pos,
-                width,
-                height,
-                oversample,
-                zoom,
-                iterations,
-                post_proc
-            )
-        });
+
+        screenshot(
+            x_pos,
+            y_pos,
+            width,
+            height,
+            oversample,
+            zoom,
+            iterations,
+            post_proc
+        )
     }
 
     pub fn reset(&mut self) {

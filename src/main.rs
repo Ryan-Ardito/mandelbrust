@@ -1,24 +1,18 @@
 #[allow(unused_imports)]
-use std::thread;
-use std::time::Duration;
+use std::{ thread, time::Duration };
 
-mod viewer;
-mod constants;
-mod rendering;
-mod imaging;
+use mandelbrust::{ Viewer, PostProc, constants::* };
 
-use viewer::Viewer;
-use imaging::PostProc;
-use constants::*;
-
-use minifb::{Key, Window, WindowOptions, KeyRepeat};
+use minifb::{ Key, Window, WindowOptions, KeyRepeat };
 
 
 fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
     viewer.update(false, 2);
+    // true when the final render is displayed
     let mut full_res = true;
-    let mut change = false;
+    // true triggers low-res first pass
+    let mut motion = false;
 
     let mut post_proc = PostProc::new();
 
@@ -35,7 +29,7 @@ fn main() {
         let buffer = post_proc.process(&viewer.buffer);
         window.update_with_buffer(&buffer, viewer.width, viewer.height).unwrap();
 
-        // handle input
+        // single key press events
         window.get_keys_pressed(KeyRepeat::No).iter().for_each(|key| match key {
             Key::L => println!("{:?}", viewer),
             Key::O => post_proc.blackwhite = !post_proc.blackwhite,
@@ -49,6 +43,7 @@ fn main() {
             _ => (),
         });
         
+        // keyboard repeat events
         window.get_keys_pressed(KeyRepeat::Yes).iter().for_each(|key| match key {
             Key::X => post_proc.color_shift_up(),
             Key::Z => post_proc.color_shift_down(),
@@ -57,20 +52,21 @@ fn main() {
             _ => (),
         });
 
+        // continuous input events
         window.get_keys().iter().for_each(|key| match key {
-            Key::Q => { viewer.zoom(1.0 - ZOOM_FACTOR); change = true; },
-            Key::E => { viewer.zoom(1.0 + ZOOM_FACTOR); change = true; },
-            Key::W => { viewer.pan(0.0, -PAN_FACTOR); change = true; },
-            Key::A => { viewer.pan(-PAN_FACTOR, 0.0); change = true; },
-            Key::S => { viewer.pan(0.0, PAN_FACTOR); change = true; },
-            Key::D => { viewer.pan(PAN_FACTOR, 0.0); change = true; },
+            Key::Q => { viewer.zoom(1.0 - ZOOM_FACTOR); motion = true; },
+            Key::E => { viewer.zoom(1.0 + ZOOM_FACTOR); motion = true; },
+            Key::W => { viewer.pan(0.0, -PAN_FACTOR); motion = true; },
+            Key::A => { viewer.pan(-PAN_FACTOR, 0.0); motion = true; },
+            Key::S => { viewer.pan(0.0, PAN_FACTOR); motion = true; },
+            Key::D => { viewer.pan(PAN_FACTOR, 0.0); motion = true; },
             _ => (),
         });
 
         // update render
-        if change {
+        if motion {
             viewer.update(true, 2);
-            change = false;
+            motion = false;
             full_res = false;
         } else if !full_res {
             viewer.update(false, 2);
