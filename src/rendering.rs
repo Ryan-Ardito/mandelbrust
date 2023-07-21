@@ -1,5 +1,7 @@
 use rayon::prelude::*;
 
+// Main calculation. Return the number of iterations taken to leave the bounds.
+// Return 0 if bounds not left. 0 represents 'in set' (with iterations.)
 #[inline(always)]
 pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     let mut x = 0.0;
@@ -21,6 +23,8 @@ pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     0
 }
 
+// Helper function to skip iterating the largest portions of the set.
+// Major speedups when areas covered are in frame. ~4% slowdown when not.
 #[inline(always)]
 fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
     let y2 = y_pos.powi(2);
@@ -30,6 +34,7 @@ fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
     in_cardioid || in_bulb
 }
 
+// Return a Vec<u32> buffer representing iterations reached for each pixel.
 pub fn render(
     x_pos: f64,
     y_pos: f64,

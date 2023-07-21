@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use std::{ thread, time::Duration };
+use std::time::Duration;
 
 use mandelbrust::{ Viewer, PostProc, constants::* };
 
@@ -22,12 +22,15 @@ fn main() {
         viewer.height,
         WindowOptions::default(),
     ).unwrap();
+    window.limit_update_rate(Some(Duration::new(0, FRAME_DURATION_NS)));
+
+    let mut buffer = post_proc.process(&viewer.buffer);
+    window.update_with_buffer(&buffer, viewer.width, viewer.height).unwrap();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
 
         // update window
-        let buffer = post_proc.process(&viewer.buffer);
-        window.update_with_buffer(&buffer, viewer.width, viewer.height).unwrap();
+        window.update();
 
         // single key press events
         window.get_keys_pressed(KeyRepeat::No).iter().for_each(|key| match key {
@@ -68,11 +71,13 @@ fn main() {
             viewer.update(true);
             motion = false;
             full_res = false;
+            buffer = post_proc.process(&viewer.buffer);
+            window.update_with_buffer(&buffer, viewer.width, viewer.height).unwrap();
         } else if !full_res {
             viewer.update(false);
             full_res = true;
+            buffer = post_proc.process(&viewer.buffer);
+            window.update_with_buffer(&buffer, viewer.width, viewer.height).unwrap();
         }
-
-        thread::sleep(Duration::new(0, FRAME_DURATION_NS))
     }
 }

@@ -169,7 +169,7 @@ impl PostProc {
         }
 
         if self.grayscale {
-            val = val % 256;
+            val %= 256;
             (val << 16) | (val << 8) | val
         } else {
             let r = val % 8 * 32;
