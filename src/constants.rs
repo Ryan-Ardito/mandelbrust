@@ -3,5 +3,5 @@ pub const WIDTH: usize = 1280;
 pub const HEIGHT: usize = 720;
 pub const ZOOM_FACTOR: f64 = 0.06;
 pub const PAN_FACTOR: f64 = 0.06;
-pub const FRAME_DURATION_NS: u32 = (1.0 / 120.0 * 1_000_000_000.0) as u32;
+pub const FRAME_DURATION_NS: u64 = (1.0 / 60.0 * 1_000_000_000.0) as u64;
 pub const IMAGE_PATH: &str = "screenshots/mandel.png";
