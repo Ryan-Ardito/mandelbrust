@@ -5,9 +5,9 @@ use mandelbrust::{ Viewer, PostProc, constants::* };
 
 use minifb::{ Key, Window, WindowOptions, KeyRepeat };
 
-
 fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
+    let mut view_buffer = viewer.buffer(false);
 
     let mut window = Window::new(
         "Mandelbrot Viewer",
@@ -30,7 +30,7 @@ fn main() {
 
         // update window
         if change {
-            let buffer = post_proc.process(&viewer.buffer);
+            let buffer = post_proc.process(&view_buffer);
             window.update_with_buffer(&buffer, viewer.width, viewer.height).unwrap();
             change = false;
         } else {
@@ -47,6 +47,8 @@ fn main() {
             Key::K => { post_proc.clamp = !post_proc.clamp; change = true },
             Key::T => { viewer.iter_up(); full_res = false; },
             Key::G => { viewer.iter_down(); full_res = false; },
+            Key::RightBracket => viewer.downsample_up(),
+            Key::LeftBracket => viewer.downsample_down(),
             Key::Key1 => { viewer.reset(); post_proc.reset(); full_res = false; },
             _ => (),
         });
@@ -73,12 +75,12 @@ fn main() {
 
         // update render
         if motion {
-            viewer.update(true);
+            view_buffer = viewer.buffer(true);
             motion = false;
             full_res = false;
             change = true;
         } else if !full_res {
-            viewer.update(false);
+            view_buffer = viewer.buffer(false);
             full_res = true;
             change = true;
         }

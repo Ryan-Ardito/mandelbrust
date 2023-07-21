@@ -4,7 +4,6 @@ use crate::imaging::{PostProc, screenshot, upscale_buffer};
 
 #[derive(Debug)]
 pub struct Viewer {
-    pub buffer: Vec<u32>,
     pub width: usize,
     pub height: usize,
     pub iterations: u32,
@@ -18,7 +17,6 @@ pub struct Viewer {
 impl Viewer {
     pub fn new(width: usize, height: usize) -> Self {
         Self {
-            buffer: vec![0; width * height],
             width,
             height,
             iterations: ITERATIONS,
@@ -30,7 +28,7 @@ impl Viewer {
         }
     }
 
-    pub fn update(&mut self, low_res: bool) {
+    pub fn buffer(&mut self, low_res: bool) -> Vec<u32> {
         let mut width = self.width;
         let mut height = self.height;
         let mut iterations = self.iterations;
@@ -53,9 +51,9 @@ impl Viewer {
         );
 
         if low_res {
-            self.buffer = upscale_buffer(buffer, width, height, downsample_scale)
+            upscale_buffer(buffer, width, height, downsample_scale)
         } else {
-            self.buffer = buffer;
+            buffer
         }
     }
 
@@ -95,6 +93,18 @@ impl Viewer {
     pub fn iter_down(&mut self) {
         if self.iterations > 1 { self.iterations /= 2; }
         println!("Iterations: {}", self.iterations);
+    }
+
+    pub fn downsample_up(&mut self) {
+        if self.downsample_exp < 4 {
+            self.downsample_exp += 1;
+        }
+    }
+
+    pub fn downsample_down(&mut self) {
+        if self.downsample_exp > 0 {
+            self.downsample_exp -= 1;
+        }
     }
 
     pub fn zoom(&mut self, factor: f64) {

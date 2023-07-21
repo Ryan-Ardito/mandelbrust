@@ -1,7 +1,7 @@
 use rayon::prelude::*;
 
 // Main calculation. Return the number of iterations taken to leave the bounds.
-// Return 0 if bounds not left. 0 represents 'in set' (with iterations.)
+// Return 0 if bounds not left. 0 represents 'in set' (up to iterations.)
 #[inline(always)]
 pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     let mut x = 0.0;
