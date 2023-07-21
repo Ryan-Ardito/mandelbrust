@@ -22,6 +22,8 @@ This program is a Mandelbrot Viewer that allows you to explore the Mandelbrot se
   - 'Z' key: Shift color palette downwards.
   - 'F' key: Increase color scaling.
   - 'C' key: Decrease color scaling.
+  - ']' key: Increase motion undersampling
+  - '[' key: Decrease motion undersampling
 - Adjust the number of iterations used for rendering using the 'T' and 'G' keys for increasing and decreasing iterations, respectively.
 - Reset the viewer and post-processing settings using the '1' key.
 - Take a screenshot of the current view using the 'P' key (saves as a 1920x1080 image with 4x supersampling).
