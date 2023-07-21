@@ -1,6 +1,6 @@
 use std::io::{ Write, stdout };
 
-use crate::rendering::render;
+use crate::rendering::{render, MetaData};
 use crate::constants::IMAGE_PATH;
 
 use image::{DynamicImage, ImageBuffer, Rgba, imageops::FilterType};
@@ -18,7 +18,6 @@ pub fn upscale_buffer(buffer: Vec<u32>, width: usize, height: usize, scale: usiz
             let dest_y = y * scale;
             let dest_index = dest_y * new_width + dest_x;
 
-            // Copy the original pixel to the 16 pixels in the scaled image
             for dy in 0..scale {
                 for dx in 0..scale {
                     scaled_buffer[dest_index + dy * new_width + dx] = orig_pixel;
@@ -30,37 +29,17 @@ pub fn upscale_buffer(buffer: Vec<u32>, width: usize, height: usize, scale: usiz
     scaled_buffer
 }
 
-pub fn screenshot(
-    x_pos: f64,
-    y_pos: f64,
-    width: usize,
-    height: usize,
-    oversample: u32,
-    zoom: f64,
-    iterations: u32,
-    post_proc: PostProc,
-) {
+pub fn screenshot(data: MetaData, oversample: u32, post_proc: PostProc) {
     print!("Saving... ");
     stdout().flush().expect("terminal error");
 
-    let hi_w = width * oversample as usize;
-    let hi_h = height * oversample as usize;
-    let base_vh = 2.0 / (hi_w as f64 / hi_h as f64);
+    let buffer = render(data);
+    let color_buffer = post_proc.process(&buffer);
 
-    let hires_buffer = render(
-        x_pos,
-        y_pos,
-        hi_w,
-        hi_h,
-        base_vh,
-        zoom,
-        iterations,
-    );
-    let color_buffer = post_proc.process(&hires_buffer);
     match save_image(
         color_buffer,
-        hi_w as u32,
-        hi_h as u32,
+        data.width as u32,
+        data.height as u32,
         IMAGE_PATH,
         oversample,
     ) {

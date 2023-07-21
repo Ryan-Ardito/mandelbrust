@@ -1,13 +1,12 @@
 use crate::constants::ITERATIONS;
-use crate::rendering::render;
+use crate::rendering::{render, MetaData};
 use crate::imaging::{PostProc, screenshot, upscale_buffer};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Viewer {
     pub width: usize,
     pub height: usize,
     pub iterations: u32,
-    base_view_height: f64,
     downsample_exp: u32,
     x_pos: f64,
     y_pos: f64,
@@ -20,7 +19,6 @@ impl Viewer {
             width,
             height,
             iterations: ITERATIONS,
-            base_view_height: 2.0 / (width as f64 / height as f64),
             downsample_exp: 2,
             x_pos: -0.5,
             y_pos: 0.0,
@@ -28,33 +26,35 @@ impl Viewer {
         }
     }
 
-    pub fn buffer(&mut self, low_res: bool) -> Vec<u32> {
-        let mut width = self.width;
-        let mut height = self.height;
-        let mut iterations = self.iterations;
-        let downsample_scale = 2usize.pow(self.downsample_exp);
-
-        if low_res {
-            width /= downsample_scale;
-            height /= downsample_scale;
-            iterations /= 2;
-        }
-
-        let buffer = render(
+    pub fn view_buffer(&mut self) -> Vec<u32> {
+        let data = MetaData::new(
+            self.width,
+            self.height,
             self.x_pos,
             self.y_pos,
+            self.zoom,
+            self.iterations,
+        );
+        render(data)
+    }
+
+    pub fn low_res_view_buffer(&mut self) -> Vec<u32> {
+        let downsample_scale = 2usize.pow(self.downsample_exp);
+        let width = self.width / downsample_scale;
+        let height = self.height / downsample_scale;
+        let iterations = self.iterations / 2;
+
+        let data = MetaData::new(
             width,
             height,
-            self.base_view_height,
+            self.x_pos,
+            self.y_pos,
             self.zoom,
             iterations,
         );
+        let buffer = render(data);
 
-        if low_res {
-            upscale_buffer(buffer, width, height, downsample_scale)
-        } else {
-            buffer
-        }
+        upscale_buffer(buffer, width, height, downsample_scale)
     }
 
     pub fn screenshot(
@@ -64,19 +64,18 @@ impl Viewer {
         oversample: u32,
         post_proc: PostProc,
     ) {
-        let x_pos = self.x_pos;
-        let y_pos = self.y_pos;
-        let zoom = self.zoom;
-        let iterations = self.iterations;
+        let data = MetaData::new(
+            width * oversample as usize,
+            height * oversample as usize,
+            self.x_pos,
+            self.y_pos,
+            self.zoom,
+            self.iterations,
+        );
 
         screenshot(
-            x_pos,
-            y_pos,
-            width,
-            height,
+            data,
             oversample,
-            zoom,
-            iterations,
             post_proc
         )
     }

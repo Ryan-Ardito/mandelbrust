@@ -1,4 +1,3 @@
-#[allow(unused_imports)]
 use std::time::Duration;
 
 use mandelbrust::{ Viewer, PostProc, constants::* };
@@ -14,7 +13,7 @@ enum VS {
 
 fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
-    let mut view_buffer = viewer.buffer(false);
+    let mut view_buffer = viewer.view_buffer();
 
     let mut window = Window::new(
         "Mandelbrot Viewer",
@@ -26,6 +25,7 @@ fn main() {
 
     let mut post_proc = PostProc::new();
 
+    // state of view_buffer
     let mut state = VS::FullRes;
 
     // true triggers update_with_buffer
@@ -78,14 +78,15 @@ fn main() {
             _ => (),
         });
 
+        // update render
         match state {
             VS::Motion => {
-                view_buffer = viewer.buffer(true);
+                view_buffer = viewer.low_res_view_buffer();
                 state = VS::LowRes;
                 change = true;
             },
             VS::LowRes => {
-                view_buffer = viewer.buffer(false);
+                view_buffer = viewer.view_buffer();
                 state = VS::FullRes;
                 change = true;
             },
