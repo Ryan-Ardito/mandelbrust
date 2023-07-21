@@ -5,6 +5,13 @@ use mandelbrust::{ Viewer, PostProc, constants::* };
 
 use minifb::{ Key, Window, WindowOptions, KeyRepeat };
 
+// view state
+enum VS {
+    Motion,
+    LowRes,
+    FullRes
+}
+
 fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
     let mut view_buffer = viewer.buffer(false);
@@ -19,10 +26,8 @@ fn main() {
 
     let mut post_proc = PostProc::new();
 
-    // true when the final render is displayed
-    let mut full_res = false;
-    // true triggers low-res first pass
-    let mut motion = false;
+    let mut state = VS::FullRes;
+
     // true triggers update_with_buffer
     let mut change = true;
 
@@ -41,48 +46,50 @@ fn main() {
         window.get_keys_pressed(KeyRepeat::No).iter().for_each(|key| match key {
             Key::L => println!("{:?}", viewer),
             Key::P => viewer.screenshot(1920, 1080, 4, post_proc),
-            Key::O => { post_proc.blackwhite = !post_proc.blackwhite; change = true },
-            Key::U => { post_proc.grayscale = !post_proc.grayscale; change = true },
-            Key::I => { post_proc.invert = !post_proc.invert; change = true },
-            Key::K => { post_proc.clamp = !post_proc.clamp; change = true },
-            Key::T => { viewer.iter_up(); full_res = false; },
-            Key::G => { viewer.iter_down(); full_res = false; },
+            Key::O => { post_proc.blackwhite = !post_proc.blackwhite; change = true; },
+            Key::U => { post_proc.grayscale = !post_proc.grayscale; change = true; },
+            Key::I => { post_proc.invert = !post_proc.invert; change = true; },
+            Key::K => { post_proc.clamp = !post_proc.clamp; change = true; },
+            Key::T => { viewer.iter_up(); state = VS::LowRes; },
+            Key::G => { viewer.iter_down(); state = VS::LowRes; },
             Key::RightBracket => viewer.downsample_up(),
             Key::LeftBracket => viewer.downsample_down(),
-            Key::Key1 => { viewer.reset(); post_proc.reset(); full_res = false; },
+            Key::Key1 => { viewer.reset(); post_proc.reset(); state = VS::LowRes; },
             _ => (),
         });
         
         // keyboard repeat events
         window.get_keys_pressed(KeyRepeat::Yes).iter().for_each(|key| match key {
-            Key::X => { post_proc.color_shift_up(); change = true },
-            Key::Z => { post_proc.color_shift_down(); change = true },
-            Key::F => { post_proc.color_scale_up(); change = true },
-            Key::C => { post_proc.color_scale_down(); change = true },
+            Key::X => { post_proc.color_shift_up(); change = true; },
+            Key::Z => { post_proc.color_shift_down(); change = true; },
+            Key::F => { post_proc.color_scale_up(); change = true; },
+            Key::C => { post_proc.color_scale_down(); change = true; },
             _ => (),
         });
 
         // continuous input events
         window.get_keys().iter().for_each(|key| match key {
-            Key::Q => { viewer.zoom(1.0 - ZOOM_FACTOR); motion = true; },
-            Key::E => { viewer.zoom(1.0 + ZOOM_FACTOR); motion = true; },
-            Key::W => { viewer.pan(0.0, -PAN_FACTOR); motion = true; },
-            Key::A => { viewer.pan(-PAN_FACTOR, 0.0); motion = true; },
-            Key::S => { viewer.pan(0.0, PAN_FACTOR); motion = true; },
-            Key::D => { viewer.pan(PAN_FACTOR, 0.0); motion = true; },
+            Key::Q => { viewer.zoom(1.0 - ZOOM_FACTOR); state = VS::Motion; },
+            Key::E => { viewer.zoom(1.0 + ZOOM_FACTOR); state = VS::Motion; },
+            Key::W => { viewer.pan(0.0, -PAN_FACTOR); state = VS::Motion; },
+            Key::A => { viewer.pan(-PAN_FACTOR, 0.0); state = VS::Motion; },
+            Key::S => { viewer.pan(0.0, PAN_FACTOR); state = VS::Motion; },
+            Key::D => { viewer.pan(PAN_FACTOR, 0.0); state = VS::Motion; },
             _ => (),
         });
 
-        // update render
-        if motion {
-            view_buffer = viewer.buffer(true);
-            motion = false;
-            full_res = false;
-            change = true;
-        } else if !full_res {
-            view_buffer = viewer.buffer(false);
-            full_res = true;
-            change = true;
-        }
+        match state {
+            VS::Motion => {
+                view_buffer = viewer.buffer(true);
+                state = VS::LowRes;
+                change = true;
+            },
+            VS::LowRes => {
+                view_buffer = viewer.buffer(false);
+                state = VS::FullRes;
+                change = true;
+            },
+            VS::FullRes => (),
+        };
     }
 }

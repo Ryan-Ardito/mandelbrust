@@ -149,16 +149,16 @@ impl PostProc {
     pub fn process(&self, buffer: &[u32]) -> Vec<u32> {
         buffer
             .par_iter()
-            .map(|&value| self.get_color(value))
+            .map(|&value| self.color_pixel(value))
             .collect()
     }
 
-    fn get_color(&self, value: u32) -> u32 {
-        if value == 0 { return value; }
+    fn color_pixel(&self, num_iters: u32) -> u32 {
+        if num_iters == 0 { return num_iters; }
 
         if self.blackwhite { return 0xFFFFFF; }
 
-        let mut val = self.color_shift + (value as f64 / self.color_scale) as u32;
+        let mut val = self.color_shift + (num_iters as f64 / self.color_scale) as u32;
 
         if self.clamp {
             val = val.clamp(0, 255);

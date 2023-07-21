@@ -22,7 +22,7 @@ impl Viewer {
             iterations: ITERATIONS,
             base_view_height: 2.0 / (width as f64 / height as f64),
             downsample_exp: 2,
-            x_pos: 0.0,
+            x_pos: -0.5,
             y_pos: 0.0,
             zoom: 1.0,
         }
