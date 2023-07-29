@@ -54,7 +54,7 @@ impl Viewer {
         );
         let buffer = render(data);
 
-        upscale_buffer(buffer, width, height, downsample_scale)
+        upscale_buffer(&buffer, width, height, downsample_scale)
     }
 
     pub fn screenshot(

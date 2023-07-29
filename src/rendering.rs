@@ -47,7 +47,7 @@ pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
 }
 
 // Helper function to skip iterating the largest portions of the set.
-// Major speedups when areas covered are in frame. ~4% slowdown when not.
+// Major speedups when areas covered are in frame. ~2% slower when not.
 #[inline(always)]
 fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
     let y2 = y_pos.powi(2);
