@@ -23,10 +23,11 @@ impl MetaData {
     }
 }
 
-// Main calculation. Return the number of iterations taken to leave the bounds.
-// Return 0 if bounds not left. 0 represents 'in set' (up to iterations.)
+/// Calculate the escape time for a given pixel in the Mandelbrot set.
+/// Return the number of iterations taken to leave the bounds.
+/// Return 0 if bounds not left (representing 'in set' up to `iterations`).
 #[inline(always)]
-pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
+pub fn escape_time(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     let mut x = 0.0;
     let mut y = 0.0;
     let mut x2 = 0.0;
@@ -36,9 +37,8 @@ pub fn calc_pixel(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     for i in 0..iterations {
         if x2 + y2 > 4.0 { return i; }
 
-        let x_temp = x2 - y2 + x_pos;
-        y = 2.0 * x * y + y_pos;
-        x = x_temp;
+        y = (x + x) * y + y_pos;
+        x = x2 - y2 + x_pos;
         x2 = x * x;
         y2 = y * y;
     }
@@ -79,7 +79,7 @@ pub fn render(data: MetaData) -> Vec<u32> {
             for pixel in row.iter_mut() {
                 *pixel = match is_in_cardioid_or_bulb(x_scaled, y_scaled) {
                     true => 0,
-                    false => calc_pixel(x_scaled, y_scaled, data.iterations),
+                    false => escape_time(x_scaled, y_scaled, data.iterations),
                 };
                 x_scaled += x_exp;
             }
