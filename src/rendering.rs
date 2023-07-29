@@ -35,12 +35,12 @@ pub fn escape_time(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
 
     // HOT loop
     for i in 0..iterations {
-        if x2 + y2 > 4.0 { return i; }
-
         y = (x + x) * y + y_pos;
         x = x2 - y2 + x_pos;
         x2 = x * x;
         y2 = y * y;
+
+        if x2 + y2 > 4.0 { return i; }
     }
 
     0
