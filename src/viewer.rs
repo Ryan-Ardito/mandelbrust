@@ -1,5 +1,5 @@
 use crate::constants::ITERATIONS;
-use crate::rendering::{render, MetaData};
+use crate::rendering::{MetaData, render};
 use crate::imaging::{PostProc, screenshot, upscale_buffer};
 
 #[derive(Debug, Clone, Copy)]
