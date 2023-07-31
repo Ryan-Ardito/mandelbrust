@@ -1,5 +1,7 @@
 use rayon::prelude::*;
 
+const P_THRES: f64 = 0.000000001;
+
 #[derive(Debug, Clone, Copy)]
 pub struct MetaData {
     pub width: usize,
@@ -33,6 +35,10 @@ pub fn escape_time(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
     let mut x2 = 0.0;
     let mut y2 = 0.0;
 
+    let mut x_old = 0.0;
+    let mut y_old = 0.0;
+    let mut period = 0;
+
     // HOT loop
     for i in 0..iterations {
         if x2 + y2 > 4.0 { return i; }
@@ -41,6 +47,16 @@ pub fn escape_time(x_pos: f64, y_pos: f64, iterations: u32) -> u32 {
         x = x2 - y2 + x_pos;
         x2 = x * x;
         y2 = y * y;
+
+        // cycle detection
+        if (x - x_old).abs() < P_THRES && (y - y_old).abs() < P_THRES { break; }
+ 
+        period += 1;
+        if period > 60 {
+            period = 40;
+            x_old = x;
+            y_old = y;
+        }
     }
 
     0
