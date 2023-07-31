@@ -60,12 +60,11 @@ fn is_in_cardioid_or_bulb(x_pos: f64, y_pos: f64) -> bool {
 // Return a Vec<u32> buffer representing iterations reached for each pixel.
 pub fn render(data: MetaData) -> Vec<u32> {
     let base_view_height = 2.0 / (data.width as f64 / data.height as f64);
+
     let x_min = data.x_pos - (2.0 / data.zoom);
-    let x_max = data.x_pos + (2.0 / data.zoom);
     let y_min = data.y_pos - (base_view_height / data.zoom);
-    let y_max = data.y_pos + (base_view_height / data.zoom);
-    let x_exp = (x_max - x_min) / (data.width - 1) as f64;
-    let y_exp = (y_max - y_min) / (data.height - 1) as f64;
+
+    let pixel_width = 4.0 / (data.zoom * (data.width - 1) as f64);
 
     let mut buffer = vec![0; data.width * data.height];
 
@@ -73,15 +72,15 @@ pub fn render(data: MetaData) -> Vec<u32> {
         .par_chunks_exact_mut(data.width)
         .enumerate()
         .for_each(|(y, row)| {
-            let y_scaled = y_min + (y as f64) * y_exp;
+            let y_curr = y_min + (y as f64) * pixel_width;
 
-            let mut x_scaled = x_min + x_exp;
+            let mut x_curr = x_min;
             for pixel in row.iter_mut() {
-                *pixel = match is_in_cardioid_or_bulb(x_scaled, y_scaled) {
+                *pixel = match is_in_cardioid_or_bulb(x_curr, y_curr) {
                     true => 0,
-                    false => escape_time(x_scaled, y_scaled, data.iterations),
+                    false => escape_time(x_curr, y_curr, data.iterations),
                 };
-                x_scaled += x_exp;
+                x_curr += pixel_width;
             }
         });
 
