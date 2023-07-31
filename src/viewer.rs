@@ -1,5 +1,5 @@
 use crate::constants::ITERATIONS;
-use crate::rendering::{MetaData, render};
+use crate::rendering::{MetaData, Float, render};
 use crate::imaging::{PostProc, screenshot, upscale_buffer};
 
 #[derive(Debug, Clone, Copy)]
@@ -8,9 +8,9 @@ pub struct Viewer {
     pub height: usize,
     pub iterations: u32,
     downsample_exp: u32,
-    x_pos: f64,
-    y_pos: f64,
-    zoom: f64,
+    x_pos: Float,
+    y_pos: Float,
+    zoom: Float,
 }
 
 impl Viewer {
@@ -106,20 +106,20 @@ impl Viewer {
         }
     }
 
-    pub fn zoom(&mut self, factor: f64) {
+    pub fn zoom(&mut self, factor: Float) {
         // limit zooming out
         if self.zoom * factor < 0.4 { return; }
         self.zoom *= factor;
     }
 
-    pub fn pan(&mut self, dx: f64, dy: f64) {
+    pub fn pan(&mut self, dx: Float, dy: Float) {
         // bound movement to bounds of the set
         if self.out_of_bounds(dx, dy) { return; }
         self.x_pos += dx / self.zoom;
         self.y_pos += dy / self.zoom;
     }
 
-    fn out_of_bounds(&self, dx: f64, dy: f64) -> bool {
+    fn out_of_bounds(&self, dx: Float, dy: Float) -> bool {
         self.x_pos + dx / self.zoom < -2.0
         || self.x_pos + dx / self.zoom > 2.0
         || self.y_pos + dy / self.zoom < -2.0
