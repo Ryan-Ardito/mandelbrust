@@ -6,22 +6,23 @@ use crate::constants::IMAGE_PATH;
 use image::{DynamicImage, ImageBuffer, Rgba, imageops::FilterType};
 use rayon::prelude::*;
 
-/// VERY simple linear scaling. if scale > 2^4, thread will panic.
-pub fn upscale_buffer(buffer: &Vec<u32>, width: usize, height: usize, scale: usize) -> Vec<u32> {
+/// VERY simple linear scaling. glitchy at high scale
+pub fn upscale_buffer(buffer: &[u32], width: usize, height: usize, scale: usize) -> Vec<u32> {
     let new_width = width * scale;
     let new_height = height * scale;
     let mut scaled_buffer = vec![0; new_width * new_height];
 
     for y in 0..height {
+        let dest_y = y * scale;
         for x in 0..width {
-            let dest_y = y * scale;
             let orig_pixel = buffer[y * width + x];
             let dest_x = x * scale;
             let dest_index = dest_y * new_width + dest_x;
 
             for dy in 0..scale {
+                let dest_offset = dest_index + dy * new_width;
                 for dx in 0..scale {
-                    scaled_buffer[dest_index + dy * new_width + dx] = orig_pixel;
+                    scaled_buffer[dest_offset + dx] = orig_pixel;
                 }
             }
         }

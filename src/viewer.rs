@@ -86,12 +86,10 @@ impl Viewer {
 
     pub fn iter_up(&mut self) {
         self.iterations *= 2;
-        println!("Iterations: {}", self.iterations);
     }
 
     pub fn iter_down(&mut self) {
         if self.iterations > 1 { self.iterations /= 2; }
-        println!("Iterations: {}", self.iterations);
     }
 
     pub fn downsample_up(&mut self) {

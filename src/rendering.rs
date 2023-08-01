@@ -2,7 +2,8 @@ use rayon::prelude::*;
 
 pub type Float = f64;
 
-const P_THRES: Float = 0.000000001;
+// approximation range for cycle detection
+const P_THRESH: Float = 0.000000001;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MetaData {
@@ -51,7 +52,7 @@ pub fn escape_time(x_pos: Float, y_pos: Float, iterations: u32) -> u32 {
         y2 = y * y;
 
         // cycle detection
-        if (x - x_old).abs() < P_THRES && (y - y_old).abs() < P_THRES { break; }
+        if (x - x_old).abs() < P_THRESH && (y - y_old).abs() < P_THRESH { break; }
  
         period += 1;
         if period > 60 {
