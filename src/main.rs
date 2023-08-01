@@ -13,7 +13,13 @@ enum VS {
 
 fn main() {
     let mut viewer = Viewer::new(WIDTH, HEIGHT);
-    let mut view_buffer = viewer.view_buffer();
+    let mut post_proc = PostProc::new();
+    let mut view_buffer = viewer.buffer();
+
+    let mut state = VS::FullRes;
+
+    // true triggers post_proc and update_with_buffer
+    let mut change = true;
 
     let mut window = Window::new(
         "Mandelbrot Viewer",
@@ -22,14 +28,6 @@ fn main() {
         WindowOptions::default(),
     ).unwrap();
     window.limit_update_rate(Some(Duration::from_nanos(FRAME_DURATION_NS)));
-
-    let mut post_proc = PostProc::new();
-
-    // state of view_buffer
-    let mut state = VS::FullRes;
-
-    // true triggers update_with_buffer
-    let mut change = true;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
 
@@ -79,18 +77,10 @@ fn main() {
         });
 
         // update render
-        match state {
-            VS::Motion => {
-                view_buffer = viewer.low_res_view_buffer();
-                state = VS::LowRes;
-                change = true;
-            },
-            VS::LowRes => {
-                view_buffer = viewer.view_buffer();
-                state = VS::FullRes;
-                change = true;
-            },
-            VS::FullRes => (),
+        (view_buffer, state, change) = match state {
+            VS::Motion => (viewer.buffer_low(), VS::LowRes, true),
+            VS::LowRes => (viewer.buffer(), VS::FullRes, true),
+            VS::FullRes => (view_buffer, state, change),
         };
     }
 }

@@ -26,7 +26,7 @@ impl Viewer {
         }
     }
 
-    pub fn view_buffer(&mut self) -> Vec<u32> {
+    pub fn buffer(&mut self) -> Vec<u32> {
         let data = MetaData::new(
             self.width,
             self.height,
@@ -38,7 +38,7 @@ impl Viewer {
         render(data)
     }
 
-    pub fn low_res_view_buffer(&mut self) -> Vec<u32> {
+    pub fn buffer_low(&mut self) -> Vec<u32> {
         let downsample_scale = 2usize.pow(self.downsample_exp);
         let width = self.width / downsample_scale;
         let height = self.height / downsample_scale;
