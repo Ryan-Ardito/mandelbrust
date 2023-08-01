@@ -1,7 +1,7 @@
 use std::io::{ Write, stdout };
 
 use crate::rendering::{render, MetaData};
-use crate::constants::IMAGE_PATH;
+use crate::constants::{IMAGE_PATH, WIDTH};
 
 use image::{DynamicImage, ImageBuffer, Rgba, imageops::FilterType};
 use rayon::prelude::*;
@@ -124,6 +124,7 @@ impl PostProc {
     pub fn process(&self, buffer: &[u32]) -> Vec<u32> {
         buffer
             .par_iter()
+            .with_min_len(WIDTH)
             .map(|&value| self.color_pixel(value))
             .collect()
     }
