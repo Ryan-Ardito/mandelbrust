@@ -3,7 +3,8 @@ use rayon::prelude::*;
 pub type Float = f64;
 
 // approximation range for cycle detection
-const P_THRESH: Float = 0.000000001;
+const PERIODICITY_THRESHOLD: Float = 1e-9;
+const CYCLE_DETECTION_DELAY: u32 = 40;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MetaData {
@@ -40,26 +41,36 @@ pub fn escape_time(x_pos: Float, y_pos: Float, iterations: u32) -> u32 {
 
     let mut x_old = 0.0;
     let mut y_old = 0.0;
-    let mut period = 0;
 
     // HOT loop
-    for i in 0..iterations {
-        if x2 + y2 > 4.0 { return i; }
+    let mut i = 0;
+    while i < iterations {
+        // sub loop to avoid branching logic in cycle detection
+        // 10 in sub loop * 2 in unroll = coords stored every 20 iterations
+        for _ in 0..10 {
+            // ~5% faster on my machine with this unroll
+            for _ in 0..2 {
+                if x2 + y2 > 4.0 { return i; }
 
-        y = (x + x) * y + y_pos;
-        x = x2 - y2 + x_pos;
-        x2 = x * x;
-        y2 = y * y;
+                y = (x + x) * y + y_pos;
+                x = x2 - y2 + x_pos;
+                x2 = x * x;
+                y2 = y * y;
 
-        // cycle detection
-        if (x - x_old).abs() < P_THRESH && (y - y_old).abs() < P_THRESH { break; }
- 
-        period += 1;
-        if period > 60 {
-            period = 40;
-            x_old = x;
-            y_old = y;
+                i += 1;
+            }
+
+            // cycle detection
+            if i >= CYCLE_DETECTION_DELAY {
+                let x_visited = (x - x_old).abs() < PERIODICITY_THRESHOLD;
+                let y_visited = (y - y_old).abs() < PERIODICITY_THRESHOLD;
+
+                if x_visited && y_visited { return 0; }
+            }
         }
+        // store visited values
+        x_old = x;
+        y_old = y;
     }
 
     0
