@@ -29,11 +29,11 @@ impl MetaData {
     }
 }
 
-/// Calculate the escape time for a given pixel in the Mandelbrot set.
+/// Calculate the escape time for a given position in the Mandelbrot set.
 /// Return the number of iterations taken to leave the bounds.
 /// Return 0 if bounds not left (representing 'in set' up to `iterations`).
 #[inline(always)]
-pub fn escape_time(x_pos: Float, y_pos: Float, iterations: u32) -> u32 {
+fn escape_time(x_pos: Float, y_pos: Float, iterations: u32) -> u32 {
     let mut x = 0.0;
     let mut y = 0.0;
     let mut x2 = 0.0;
@@ -45,7 +45,7 @@ pub fn escape_time(x_pos: Float, y_pos: Float, iterations: u32) -> u32 {
     // HOT loop
     let mut i = 0;
     while i < iterations {
-        // sub loop to avoid branching logic in cycle detection
+        // sub loop to avoid branching in cycle detection, reduce loop overhead
         // 10 in sub loop * 2 in unroll = coords stored every 20 iterations
         for _ in 0..10 {
             // ~5% faster on my machine with this unroll
@@ -78,13 +78,19 @@ pub fn escape_time(x_pos: Float, y_pos: Float, iterations: u32) -> u32 {
 
 // Helper function to skip iterating the largest portions of the set.
 // Major speedups when areas covered are in frame. ~2% slower when not.
-#[inline(always)]
 fn is_in_cardioid_or_bulb(x_pos: Float, y_pos: Float) -> bool {
     let y2 = y_pos.powi(2);
     let q = (x_pos - 0.25).powi(2) + y2;
     let in_cardioid = q * (q + (x_pos - 0.25)) < 0.25 * y2;
     let in_bulb = (x_pos + 1.0).powi(2) + y2 < 0.0625;
     in_cardioid || in_bulb
+}
+
+fn calc_pixel(x_pos: Float, y_pos: Float, iterations: u32) -> u32 {
+    match is_in_cardioid_or_bulb(x_pos, y_pos) {
+        true => 0,
+        false => escape_time(x_pos, y_pos, iterations),
+    }
 }
 
 // Return a Vec<u32> buffer representing iterations reached for each pixel.
@@ -106,10 +112,7 @@ pub fn render(data: MetaData) -> Vec<u32> {
 
             let mut x_curr = x_min;
             for pixel in row.iter_mut() {
-                *pixel = match is_in_cardioid_or_bulb(x_curr, y_curr) {
-                    true => 0,
-                    false => escape_time(x_curr, y_curr, data.iterations),
-                };
+                *pixel = calc_pixel(x_curr, y_curr, data.iterations);
                 x_curr += pixel_width;
             }
         });

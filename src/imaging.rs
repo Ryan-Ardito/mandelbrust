@@ -141,7 +141,7 @@ impl PostProc {
         }
 
         if self.invert {
-            val = !(val as u8) as u32;
+            val = !val;
         }
 
         if self.grayscale {
