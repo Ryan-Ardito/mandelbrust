@@ -62,7 +62,7 @@ impl Viewer {
         width: usize,
         height: usize,
         oversample: u32,
-        post_proc: PostProc,
+        post_proc: &PostProc,
     ) {
         let data = MetaData::new(
             width * oversample as usize,
@@ -76,7 +76,7 @@ impl Viewer {
         screenshot(
             data,
             oversample,
-            post_proc
+            &post_proc
         )
     }
 

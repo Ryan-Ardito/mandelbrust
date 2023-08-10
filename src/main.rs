@@ -43,7 +43,8 @@ fn main() {
         // single key press events
         window.get_keys_pressed(KeyRepeat::No).iter().for_each(|key| match key {
             Key::L => println!("{:?}", viewer),
-            Key::P => viewer.screenshot(1920, 1080, 4, post_proc),
+            Key::P => viewer.screenshot(1920, 1080, 4, &post_proc),
+            Key::J => { post_proc.fast_color = !post_proc.fast_color; change = true; },
             Key::O => { post_proc.blackwhite = !post_proc.blackwhite; change = true; },
             Key::U => { post_proc.grayscale = !post_proc.grayscale; change = true; },
             Key::I => { post_proc.invert = !post_proc.invert; change = true; },

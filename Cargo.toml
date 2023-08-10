@@ -22,6 +22,7 @@ harness = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+colorgrad = "0.6.2"
 minifb = "0.25.0"
 image = "0.24.6"
 rayon = "1.7.0"

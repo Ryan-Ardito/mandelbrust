@@ -1,10 +1,13 @@
 use std::io::{ Write, stdout };
 
-use crate::rendering::{render, MetaData};
+use crate::rendering::{MetaData, render};
 use crate::constants::{IMAGE_PATH, WIDTH};
 
 use image::{DynamicImage, ImageBuffer, Rgba, imageops::FilterType};
 use rayon::prelude::*;
+use colorgrad::{self, Gradient};
+
+const FACTOR: f64 = 64.0;
 
 /// VERY simple linear scaling. glitchy at high scale
 pub fn upscale_buffer(buffer: &[u32], width: usize, height: usize, scale: usize) -> Vec<u32> {
@@ -31,7 +34,7 @@ pub fn upscale_buffer(buffer: &[u32], width: usize, height: usize, scale: usize)
     scaled_buffer
 }
 
-pub fn screenshot(data: MetaData, oversample: u32, post_proc: PostProc) {
+pub fn screenshot(data: MetaData, oversample: u32, post_proc: &PostProc) {
     print!("Saving... ");
     stdout().flush().expect("terminal error");
 
@@ -75,10 +78,12 @@ fn save_image(
     dynamic_image.save(file_path)
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct PostProc {
+    pub gradients: [Gradient; 5],
     pub color_scale: f64,
     pub color_shift: u32,
+    pub fast_color: bool,
     pub blackwhite: bool,
     pub grayscale: bool,
     pub invert: bool,
@@ -88,8 +93,16 @@ pub struct PostProc {
 impl PostProc {
     pub fn new() -> Self {
         Self {
+            gradients: [
+                colorgrad::magma(),
+                colorgrad::spectral(),
+                colorgrad::rainbow(),
+                colorgrad::sinebow(),
+                colorgrad::turbo(),
+            ],
             color_scale: 1.0,
             color_shift: 0,
+            fast_color: false,
             blackwhite: false,
             grayscale: false,
             invert: false,
@@ -102,7 +115,7 @@ impl PostProc {
     }
 
     pub fn color_shift_up(&mut self) {
-            self.color_shift += 1;
+        self.color_shift += 1;
     }
 
     pub fn color_shift_down(&mut self) {
@@ -148,10 +161,26 @@ impl PostProc {
             val %= 256;
             (val << 16) | (val << 8) | val
         } else {
-            let r = val % 8 * 32;
-            let g = val % 16 * 16;
-            let b = val % 32 * 8;
-            (r << 16) | (g << 8) | b
+            match self.fast_color {
+                true => fast_color(val),
+                false => {
+                    let grad_idx = ((val / FACTOR as u32) % self.gradients.len() as u32) as usize;
+                    gradient_color(val, &self.gradients[grad_idx])
+                }
+            }
         }
     }
+}
+
+fn fast_color(val: u32) -> u32 {
+    let r = val % 8 * 32;
+    let g = val % 16 * 16;
+    let b = val % 32 * 8;
+    (r << 16) | (g << 8) | b
+}
+
+fn gradient_color(val: u32, gradient: &Gradient) -> u32 {
+    let normalized = (val as f64 % FACTOR) / FACTOR;
+    let result = gradient.at(normalized);
+    u32::from_be_bytes(result.to_rgba8()) >> 8
 }

@@ -1,4 +1,4 @@
-use mandelbrust::rendering::{render, MetaData};
+use mandelbrust::rendering::{MetaData, render};
 use mandelbrust::imaging::{PostProc, upscale_buffer};
 
 use criterion::{criterion_group, criterion_main, Criterion};
@@ -26,12 +26,20 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     );
 
-    c.bench_function("post proc", |b|
+    c.bench_function("gradient coloring", |b| {
+        let post_proc = PostProc::new();
         b.iter(|| {
-            let post_proc = PostProc::new();
             post_proc.process(&buffer);
         })
-    );
+    });
+
+    c.bench_function("fast coloring", |b| {
+        let mut post_proc = PostProc::new();
+        post_proc.fast_color = true;
+        b.iter(|| {
+            post_proc.process(&buffer);
+        })
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);
